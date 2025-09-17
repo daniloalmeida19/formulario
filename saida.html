@@ -12,7 +12,7 @@
             <li><a href="index.html">Cadastrar</a></li>
             <li><a href="produtos.html">Ver Estoque</a></li>
             <li><a href="saida.html" class="active">Registrar Saída</a></li>
-            <li><a href="estoque-baixo.html">Estoque Baixo</a></li>
+            <li><a href="relatorios.html">Relatórios</a></li>
         </ul>
     </nav>
     <header>
@@ -85,9 +85,24 @@
                 // Atualiza a quantidade
                 produto.quantidade -= quantidadeVendida;
                 localStorage.setItem('produtos', JSON.stringify(produtos));
-                
+
                 // Calcula o lucro da venda
                 const lucroVenda = (produto.valorVenda - produto.valorCompra) * quantidadeVendida;
+                const valorTotalVenda = produto.valorVenda * quantidadeVendida;
+
+                // Cria um registro da venda
+                const registroVenda = {
+                    produtoId: produto.id,
+                    produtoNome: produto.nome,
+                    quantidade: quantidadeVendida,
+                    valorTotal: valorTotalVenda,
+                    lucro: lucroVenda,
+                    data: new Date().toISOString() // Salva a data e hora exatas
+                };
+
+                const vendasSalvas = JSON.parse(localStorage.getItem('vendas')) || [];
+                vendasSalvas.push(registroVenda);
+                localStorage.setItem('vendas', JSON.stringify(vendasSalvas));
 
                 // Monta a mensagem de feedback
                 let feedbackMessage = `Venda registrada! Lucro: R$ ${lucroVenda.toFixed(2)}.`;
