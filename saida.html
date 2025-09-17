@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saída de Produtos</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <h1>Registrar Saída de Produto (Venda)</h1>
+    </header>
+    <main>
+        <form id="saida-form">
+            <fieldset>
+                <legend>Detalhes da Venda</legend>
+                <div>
+                    <label for="produto-vendido">Selecione o Produto:</label><br>
+                    <select id="produto-vendido" name="produto_vendido" required>
+                        <option value="" disabled selected>Carregando produtos...</option>
+                    </select>
+                </div>
+                <br>
+                <div>
+                    <label for="quantidade-vendida">Quantidade Vendida:</label><br>
+                    <input type="number" id="quantidade-vendida" name="quantidade_vendida" min="1" placeholder="Ex: 1" required>
+                </div>
+            </fieldset>
+            <br>
+            <button type="submit">Registrar Venda</button>
+        </form>
+        <div id="feedback-saida" style="margin-top: 20px; font-weight: bold;"></div>
+        <br>
+        <a href="produtos.html">Ver Estoque Atual</a>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectProduto = document.getElementById('produto-vendido');
+            const saidaForm = document.getElementById('saida-form');
+            const feedbackDiv = document.getElementById('feedback-saida');
+            const limiteEstoqueBaixo = 10;
+
+            // Carrega os produtos no menu de seleção
+            let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            selectProduto.innerHTML = '<option value="" disabled selected>Selecione um produto</option>'; // Limpa "Carregando..."
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                option.textContent = `${produto.nome} (Estoque: ${produto.quantidade})`;
+                selectProduto.appendChild(option);
+            });
+
+            // Processa o formulário de venda
+            saidaForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const produtoId = document.getElementById('produto-vendido').value;
+                const quantidadeVendida = parseInt(document.getElementById('quantidade-vendida').value, 10);
+
+                const produtoIndex = produtos.findIndex(p => p.id === produtoId);
+
+                if (produtoIndex === -1) {
+                    feedbackDiv.textContent = 'Erro: Produto não encontrado.';
+                    feedbackDiv.style.color = 'red';
+                    return;
+                }
+
+                const produto = produtos[produtoIndex];
+
+                if (quantidadeVendida > produto.quantidade) {
+                    feedbackDiv.textContent = `Erro: Quantidade de venda (${quantidadeVendida}) é maior que o estoque (${produto.quantidade}).`;
+                    feedbackDiv.style.color = 'red';
+                    return;
+                }
+
+                // Atualiza a quantidade
+                produto.quantidade -= quantidadeVendida;
+                localStorage.setItem('produtos', JSON.stringify(produtos));
+
+                // Monta a mensagem de feedback
+                let feedbackMessage = `Venda de ${quantidadeVendida} unidade(s) de "${produto.nome}" registrada com sucesso!`;
+                if (produto.quantidade <= limiteEstoqueBaixo) {
+                    feedbackMessage += ` ATENÇÃO: Estoque baixo! Restam apenas ${produto.quantidade} unidades.`;
+                    feedbackDiv.style.color = 'orange';
+                } else {
+                    feedbackDiv.style.color = 'green';
+                }
+
+                feedbackDiv.textContent = feedbackMessage;
+                saidaForm.reset();
+                
+                // Recarrega a lista para mostrar o estoque atualizado
+                location.reload();
+            });
+        });
+    </script>
+</body>
+</html>

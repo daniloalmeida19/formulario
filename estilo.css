@@ -1,0 +1,132 @@
+/* --- Estilos Gerais --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e9ecef; /* Fundo cinza claro, como um chão de fábrica limpo */
+    color: #212529; /* Texto escuro para alto contraste */
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+main {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    box-sizing: border-box;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 700px;
+}
+
+h1 {
+    color: #343a40; /* Cinza escuro, quase preto */
+    border-bottom: 4px solid #007bff; /* Linha azul como detalhe de marcação */
+    padding-bottom: 10px;
+    margin: 0;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* --- Estilos do Formulário (index.html) --- */
+fieldset {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 0;
+}
+
+legend {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #495057;
+    padding: 0 10px;
+}
+
+label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+button[type="submit"] {
+    background-color: #28a745; /* Verde para ação de sucesso/cadastro */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #218838; /* Verde mais escuro no hover */
+}
+
+/* --- Estilos da Tabela (produtos.html) --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6; /* Linhas divisórias sutis */
+    text-align: left;
+}
+
+thead th {
+    background-color: #f8f9fa; /* Cabeçalho da tabela com fundo levemente cinza */
+    color: #343a40;
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8f9fa; /* Linhas alternadas para melhor legibilidade */
+}
+
+tbody tr:hover {
+    background-color: #e9ecef; /* Destaque ao passar o mouse */
+}

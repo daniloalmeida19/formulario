@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Produtos</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <h1>Produtos Cadastrados</h1>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody id="lista-produtos">
+                <!-- Os produtos serão inseridos aqui pelo JavaScript -->
+            </tbody>
+        </table>
+        <p id="sem-produtos" style="display: none;">Nenhum produto cadastrado ainda.</p>
+        <br>
+        <a href="index.html">Cadastrar Novo Produto</a>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const listaProdutos = document.getElementById('lista-produtos');
+            const msgSemProdutos = document.getElementById('sem-produtos');
+            const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+
+            if (produtos.length === 0) {
+                msgSemProdutos.style.display = 'block';
+            } else {
+                produtos.forEach(produto => {
+                    const row = listaProdutos.insertRow();
+                    row.insertCell(0).textContent = produto.nome;
+                    row.insertCell(1).textContent = produto.quantidade;
+                    row.insertCell(2).textContent = produto.valor;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

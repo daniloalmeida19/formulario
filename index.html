@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário Empresárial</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <header>
+        <h1>Formulário de Cadastro de Produtos</h1>
+    </header>
+    <main>
+        <form id="product-form">
+            <fieldset>
+                <legend>Informações do Produto</legend>
+
+                <div>
+                    <label for="nome-produto">Nome do Produto:</label><br>
+                    <select id="nome-produto" name="nome_produto" required>
+                        <option value="" disabled selected>Selecione um produto</option>
+                        <option value="camiseta-branca">Camiseta Branca</option>
+                        <option value="calca-jeans">Calça Jeans</option>
+                        <option value="tenis-esportivo">Tênis Esportivo</option>
+                        <option value="moletom-preto">Moletom Preto</option>
+                        <option value="bermuda-tactel">Bermuda Tactel</option>
+                        <option value="vestido-floral">Vestido Floral</option>
+                        <option value="sapato-social">Sapato Social</option>
+                        <option value="jaqueta-couro">Jaqueta de Couro</option>
+                        <option value="oculos-sol">Óculos de Sol</option>
+                        <option value="relogio-pulso">Relógio de Pulso</option>
+                    </select>
+                </div>
+                <br>
+                <div>
+                    <label for="estoque">Quantidade em Estoque:</label><br>
+                    <input type="number" id="estoque" name="estoque" min="0" placeholder="Ex: 100" required>
+                    <small id="alerta-estoque" style="color: red; display: none;">Atenção: Estoque baixo!</small>
+                </div>
+                <br>
+                <div>
+                    <label for="valor">Valor (R$):</label><br>
+                    <input type="number" id="valor" name="valor" min="0.01" step="0.01" placeholder="Ex: 49.90" required>
+                </div>
+            </fieldset>
+            <br>
+            <button type="submit">Cadastrar Produto</button>
+        </form>
+        <br>
+        <a href="produtos.html">Ver Produtos Cadastrados</a>
+
+        <script>
+            const productForm = document.getElementById('product-form');
+            const estoqueInput = document.getElementById('estoque');
+            const alertaEstoque = document.getElementById('alerta-estoque');
+
+            // Adiciona um "ouvinte" para o alerta de estoque baixo
+            estoqueInput.addEventListener('input', function() {
+                const quantidade = parseInt(this.value, 10);
+                const limiteEstoqueBaixo = 10;
+                alertaEstoque.style.display = (quantidade <= limiteEstoqueBaixo && this.value !== '') ? 'block' : 'none';
+            });
+
+            // Adiciona um "ouvinte" para o envio do formulário
+            productForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Impede o envio padrão do formulário
+
+                // Pega os valores dos campos
+                const nomeProdutoSelect = document.getElementById('nome-produto');
+                const produtoId = nomeProdutoSelect.value;
+                const nomeProduto = nomeProdutoSelect.options[nomeProdutoSelect.selectedIndex].text;
+                const quantidade = document.getElementById('estoque').value;
+                const valor = parseFloat(document.getElementById('valor').value).toFixed(2);
+
+                const produto = {
+                    id: produtoId,
+                    nome: nomeProduto, // O texto visível, ex: "Camiseta Branca"
+                    quantidade: quantidade,
+                    valor: valor
+                };
+
+                // Pega os produtos já salvos no localStorage ou cria uma lista vazia
+                const produtosSalvos = JSON.parse(localStorage.getItem('produtos')) || [];
+                produtosSalvos.push(produto);
+                localStorage.setItem('produtos', JSON.stringify(produtosSalvos));
+
+                alert('Produto cadastrado com sucesso!');
+                productForm.reset(); // Limpa o formulário
+            });
+        </script>
+    </main>
+</body>
+</html>
