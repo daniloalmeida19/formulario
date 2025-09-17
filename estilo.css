@@ -48,6 +48,45 @@ a:hover {
     text-decoration: underline;
 }
 
+/* --- Estilos de Navegação --- */
+nav {
+    width: 100%;
+    max-width: 700px;
+    background-color: #495057; /* Cinza industrial */
+    border-radius: 8px 8px 0 0; /* Arredondar cantos superiores */
+    padding: 5px 0;
+    margin-bottom: -1px; /* Para conectar com o 'main' */
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+nav ul li a {
+    display: block;
+    color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-weight: 500;
+    margin: 5px;
+    text-align: center;
+}
+
+nav ul li a:hover, nav ul li a.active {
+    background-color: #007bff;
+    text-decoration: none;
+    color: #ffffff;
+}
+
 /* --- Estilos do Formulário (index.html) --- */
 fieldset {
     border: 1px solid #ced4da;

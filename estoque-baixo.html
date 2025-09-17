@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos com Estoque Baixo</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="index.html">Cadastrar</a></li>
+            <li><a href="produtos.html">Ver Estoque</a></li>
+            <li><a href="saida.html">Registrar Saída</a></li>
+            <li><a href="estoque-baixo.html" class="active">Estoque Baixo</a></li>
+        </ul>
+    </nav>
+    <header>
+        <h1>Produtos com Estoque Baixo</h1>
+    </header>
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade Restante</th>
+                </tr>
+            </thead>
+            <tbody id="lista-produtos-baixo">
+                <!-- Produtos com estoque baixo serão inseridos aqui -->
+            </tbody>
+        </table>
+        <p id="sem-produtos" style="display: none;">Nenhum produto com estoque baixo no momento.</p>
+        <br>
+        <a href="index.html">Cadastrar Novo Produto</a>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const listaProdutosBaixo = document.getElementById('lista-produtos-baixo');
+            const msgSemProdutos = document.getElementById('sem-produtos');
+            const limiteEstoqueBaixo = 10;
+
+            const todosProdutos = JSON.parse(localStorage.getItem('produtos')) || [];
+            const produtosComEstoqueBaixo = todosProdutos.filter(produto => produto.quantidade <= limiteEstoqueBaixo);
+
+            if (produtosComEstoqueBaixo.length === 0) {
+                msgSemProdutos.style.display = 'block';
+            } else {
+                // Ordena para mostrar os mais críticos primeiro
+                produtosComEstoqueBaixo.sort((a, b) => a.quantidade - b.quantidade);
+
+                produtosComEstoqueBaixo.forEach(produto => {
+                    const row = listaProdutosBaixo.insertRow();
+                    row.insertCell(0).textContent = produto.nome;
+                    row.insertCell(1).textContent = produto.quantidade;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
