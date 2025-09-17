@@ -143,6 +143,22 @@ button[type="submit"]:hover {
     background-color: #218838; /* Verde mais escuro no hover */
 }
 
+/* --- Botão de Exclusão --- */
+.delete-btn {
+    background-color: #dc3545; /* Vermelho para ação de perigo/exclusão */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+    background-color: #c82333; /* Vermelho mais escuro no hover */
+}
+
 /* --- Estilos da Tabela (produtos.html) --- */
 table {
     width: 100%;

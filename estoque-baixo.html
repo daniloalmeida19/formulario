@@ -24,6 +24,7 @@
                 <tr>
                     <th>Produto</th>
                     <th>Quantidade Restante</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="lista-produtos-baixo">
@@ -40,22 +41,47 @@
             const listaProdutosBaixo = document.getElementById('lista-produtos-baixo');
             const msgSemProdutos = document.getElementById('sem-produtos');
             const limiteEstoqueBaixo = 10;
-
-            const todosProdutos = JSON.parse(localStorage.getItem('produtos')) || [];
-            const produtosComEstoqueBaixo = todosProdutos.filter(produto => produto.quantidade <= limiteEstoqueBaixo);
+ 
+            let todosProdutos = JSON.parse(localStorage.getItem('produtos')) || [];
+            let produtosComEstoqueBaixo = todosProdutos.filter(produto => produto.quantidade <= limiteEstoqueBaixo);
 
             if (produtosComEstoqueBaixo.length === 0) {
                 msgSemProdutos.style.display = 'block';
             } else {
                 // Ordena para mostrar os mais críticos primeiro
                 produtosComEstoqueBaixo.sort((a, b) => a.quantidade - b.quantidade);
-
+ 
                 produtosComEstoqueBaixo.forEach(produto => {
                     const row = listaProdutosBaixo.insertRow();
+                    row.dataset.id = produto.id; // Adiciona um identificador na linha
+
                     row.insertCell(0).textContent = produto.nome;
                     row.insertCell(1).textContent = produto.quantidade;
+
+                    const actionCell = row.insertCell(2);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Excluir';
+                    deleteButton.className = 'delete-btn';
+                    actionCell.appendChild(deleteButton);
                 });
             }
+
+            // Lógica para exclusão
+            listaProdutosBaixo.addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-btn')) {
+                    if (confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
+                        const row = event.target.closest('tr');
+                        const produtoId = row.dataset.id;
+
+                        // Remove do array principal e atualiza o localStorage
+                        todosProdutos = todosProdutos.filter(p => p.id !== produtoId);
+                        localStorage.setItem('produtos', JSON.stringify(todosProdutos));
+
+                        // Remove a linha da tabela na tela
+                        row.remove();
+                    }
+                }
+            });
         });
     </script>
 </body>
