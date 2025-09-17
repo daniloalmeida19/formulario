@@ -47,8 +47,13 @@
                 </div>
                 <br>
                 <div>
-                    <label for="valor">Valor (R$):</label><br>
-                    <input type="number" id="valor" name="valor" min="0.01" step="0.01" placeholder="Ex: 49.90" required>
+                    <label for="valor-compra">Preço de Compra (R$):</label><br>
+                    <input type="number" id="valor-compra" name="valor_compra" min="0.01" step="0.01" placeholder="Ex: 29.90" required>
+                </div>
+                <br>
+                <div>
+                    <label for="valor-venda">Preço de Venda (R$):</label><br>
+                    <input type="number" id="valor-venda" name="valor_venda" min="0.01" step="0.01" placeholder="Ex: 49.90" required>
                 </div>
             </fieldset>
             <br>
@@ -78,13 +83,15 @@
                 const produtoId = nomeProdutoSelect.value;
                 const nomeProduto = nomeProdutoSelect.options[nomeProdutoSelect.selectedIndex].text;
                 const quantidade = document.getElementById('estoque').value;
-                const valor = parseFloat(document.getElementById('valor').value).toFixed(2);
+                const valorCompra = parseFloat(document.getElementById('valor-compra').value).toFixed(2);
+                const valorVenda = parseFloat(document.getElementById('valor-venda').value).toFixed(2);
 
                 const produto = {
                     id: produtoId,
                     nome: nomeProduto, // O texto visível, ex: "Camiseta Branca"
                     quantidade: quantidade,
-                    valor: valor
+                    valorCompra: valorCompra,
+                    valorVenda: valorVenda
                 };
 
                 // Pega os produtos já salvos no localStorage ou cria uma lista vazia

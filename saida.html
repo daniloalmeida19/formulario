@@ -85,10 +85,13 @@
                 // Atualiza a quantidade
                 produto.quantidade -= quantidadeVendida;
                 localStorage.setItem('produtos', JSON.stringify(produtos));
+                
+                // Calcula o lucro da venda
+                const lucroVenda = (produto.valorVenda - produto.valorCompra) * quantidadeVendida;
 
                 // Monta a mensagem de feedback
-                let feedbackMessage = `Venda de ${quantidadeVendida} unidade(s) de "${produto.nome}" registrada com sucesso!`;
-                if (produto.quantidade <= limiteEstoqueBaixo) {
+                let feedbackMessage = `Venda registrada! Lucro: R$ ${lucroVenda.toFixed(2)}.`;
+                if (produto.quantidade <= limiteEstoqueBaixo && produto.quantidade > 0) {
                     feedbackMessage += ` ATENÇÃO: Estoque baixo! Restam apenas ${produto.quantidade} unidades.`;
                     feedbackDiv.style.color = 'orange';
                 } else {

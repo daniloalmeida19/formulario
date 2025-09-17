@@ -24,7 +24,9 @@
                 <tr>
                     <th>Produto</th>
                     <th>Quantidade</th>
-                    <th>Valor (R$)</th>
+                    <th>Preço Compra (R$)</th>
+                    <th>Preço Venda (R$)</th>
+                    <th>Lucro/Unid. (R$)</th>
                 </tr>
             </thead>
             <tbody id="lista-produtos">
@@ -45,11 +47,14 @@
             if (produtos.length === 0) {
                 msgSemProdutos.style.display = 'block';
             } else {
-                produtos.forEach(produto => {
+                produtos.forEach(p => {
+                    const lucro = (p.valorVenda - p.valorCompra).toFixed(2);
                     const row = listaProdutos.insertRow();
-                    row.insertCell(0).textContent = produto.nome;
-                    row.insertCell(1).textContent = produto.quantidade;
-                    row.insertCell(2).textContent = produto.valor;
+                    row.insertCell(0).textContent = p.nome;
+                    row.insertCell(1).textContent = p.quantidade;
+                    row.insertCell(2).textContent = p.valorCompra;
+                    row.insertCell(3).textContent = p.valorVenda;
+                    row.insertCell(4).textContent = lucro;
                 });
             }
         });
