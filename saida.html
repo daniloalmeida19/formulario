@@ -9,10 +9,12 @@
 <body>
     <nav>
         <ul>
-            <li><a href="index.html">Cadastrar</a></li>
+            <li><a href="index.html">Cadastrar Produto</a></li>
+            <li><a href="cadastrar-cliente.html">Cadastrar Cliente</a></li>
             <li><a href="produtos.html">Ver Estoque</a></li>
             <li><a href="saida.html" class="active">Registrar Saída</a></li>
             <li><a href="relatorios.html">Relatórios</a></li>
+            <li><a href="clientes.html">Clientes</a></li>
         </ul>
     </nav>
     <header>
@@ -33,6 +35,13 @@
                     <label for="quantidade-vendida">Quantidade Vendida:</label><br>
                     <input type="number" id="quantidade-vendida" name="quantidade_vendida" min="1" placeholder="Ex: 1" required>
                 </div>
+                <br>
+                <div>
+                    <label for="cliente-vendido">Selecione o Cliente:</label> <a href="cadastrar-cliente.html" style="font-size: 0.9em;">(Novo Cliente)</a><br>
+                    <select id="cliente-vendido" name="cliente_vendido" required>
+                        <option value="" disabled selected>Carregando clientes...</option>
+                    </select>
+                </div>
             </fieldset>
             <br>
             <button type="submit">Registrar Venda</button>
@@ -45,6 +54,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectProduto = document.getElementById('produto-vendido');
+            const selectCliente = document.getElementById('cliente-vendido');
             const saidaForm = document.getElementById('saida-form');
             const feedbackDiv = document.getElementById('feedback-saida');
             const limiteEstoqueBaixo = 10;
@@ -59,17 +69,35 @@
                 selectProduto.appendChild(option);
             });
 
+            // Carrega os clientes no menu de seleção
+            let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            selectCliente.innerHTML = '<option value="" disabled selected>Selecione um cliente</option>'; // Limpa "Carregando..."
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nome;
+                selectCliente.appendChild(option);
+            });
+
             // Processa o formulário de venda
             saidaForm.addEventListener('submit', function(event) {
                 event.preventDefault();
 
                 const produtoId = document.getElementById('produto-vendido').value;
                 const quantidadeVendida = parseInt(document.getElementById('quantidade-vendida').value, 10);
-
+                const clienteId = document.getElementById('cliente-vendido').value;
+                
                 const produtoIndex = produtos.findIndex(p => p.id === produtoId);
+                const cliente = clientes.find(c => c.id === clienteId);
 
                 if (produtoIndex === -1) {
                     feedbackDiv.textContent = 'Erro: Produto não encontrado.';
+                    feedbackDiv.style.color = 'red';
+                    return;
+                }
+
+                if (!cliente) {
+                    feedbackDiv.textContent = 'Erro: Cliente não encontrado.';
                     feedbackDiv.style.color = 'red';
                     return;
                 }
@@ -97,7 +125,13 @@
                     quantidade: quantidadeVendida,
                     valorTotal: valorTotalVenda,
                     lucro: lucroVenda,
-                    data: new Date().toISOString() // Salva a data e hora exatas
+                    data: new Date().toISOString(), // Salva a data e hora exatas
+                    cliente: { // Salva o objeto cliente inteiro
+                        id: cliente.id,
+                        nome: cliente.nome,
+                        endereco: cliente.endereco,
+                        telefone: cliente.telefone
+                    }
                 };
 
                 const vendasSalvas = JSON.parse(localStorage.getItem('vendas')) || [];
@@ -105,7 +139,7 @@
                 localStorage.setItem('vendas', JSON.stringify(vendasSalvas));
 
                 // Monta a mensagem de feedback
-                let feedbackMessage = `Venda registrada! Lucro: R$ ${lucroVenda.toFixed(2)}.`;
+                let feedbackMessage = `Venda registrada para ${cliente.nome}! Lucro: R$ ${lucroVenda.toFixed(2)}.`;
                 if (produto.quantidade <= limiteEstoqueBaixo && produto.quantidade > 0) {
                     feedbackMessage += ` ATENÇÃO: Estoque baixo! Restam apenas ${produto.quantidade} unidades.`;
                     feedbackDiv.style.color = 'orange';

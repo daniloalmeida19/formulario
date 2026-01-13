@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Clientes</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="index.html">Cadastrar Produto</a></li>
+            <li><a href="cadastrar-cliente.html" class="active">Cadastrar Cliente</a></li>
+            <li><a href="produtos.html">Ver Estoque</a></li>
+            <li><a href="saida.html">Registrar Saída</a></li>
+            <li><a href="relatorios.html">Relatórios</a></li>
+            <li><a href="clientes.html">Clientes</a></li>
+        </ul>
+    </nav>
+    <header>
+        <h1>Formulário de Cadastro de Clientes</h1>
+        <p>Insira os dados do cliente para cadastrar no sistema.</p>
+    </header>
+    <main>
+        <form id="client-form">
+            <fieldset>
+                <legend>Informações do Cliente</legend>
+                <div>
+                    <label for="nome-cliente">Nome do Cliente:</label><br>
+                    <input type="text" id="nome-cliente" name="nome_cliente" placeholder="Nome completo do cliente" required>
+                </div>
+                <br>
+                <div>
+                    <label for="endereco-cliente">Endereço:</label><br>
+                    <input type="text" id="endereco-cliente" name="endereco_cliente" placeholder="Rua, número, bairro, cidade" required>
+                </div>
+                <br>
+                <div>
+                    <label for="telefone-cliente">Telefone:</label><br>
+                    <input type="tel" id="telefone-cliente" name="telefone_cliente" placeholder="(XX) XXXXX-XXXX" required>
+                </div>
+            </fieldset>
+            <br>
+            <button type="submit">Cadastrar Cliente</button>
+        </form>
+    </main>
+
+    <script>
+        document.getElementById('client-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome-cliente').value;
+            const endereco = document.getElementById('endereco-cliente').value;
+            const telefone = document.getElementById('telefone-cliente').value;
+
+            const cliente = {
+                id: 'cliente-' + Date.now(), // Gera um ID único
+                nome: nome,
+                endereco: endereco,
+                telefone: telefone
+            };
+
+            const clientesSalvos = JSON.parse(localStorage.getItem('clientes')) || [];
+            clientesSalvos.push(cliente);
+            localStorage.setItem('clientes', JSON.stringify(clientesSalvos));
+
+            alert('Cliente cadastrado com sucesso!');
+            document.getElementById('client-form').reset();
+        });
+    </script>
+</body>
+</html>
