@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Vendas</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
     <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
@@ -49,6 +50,7 @@
                     <th>Qtd.</th>
                     <th>Valor Venda (R$)</th>
                     <th>Lucro (R$)</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="historico-vendas">
@@ -60,49 +62,80 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const hoje = new Date();
-            const anoAtual = hoje.getFullYear();
-            const mesAtual = hoje.getMonth();
-            const diaAtual = hoje.getDate();
+            function carregarRelatorios() {
+                const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+                const hoje = new Date();
+                const anoAtual = hoje.getFullYear();
+                const mesAtual = hoje.getMonth();
+                const diaAtual = hoje.getDate();
 
-            let totalVendasDia = 0, lucroDia = 0, totalVendasMes = 0, lucroMes = 0;
+                let totalVendasDia = 0, lucroDia = 0, totalVendasMes = 0, lucroMes = 0;
 
-            const historicoTbody = document.getElementById('historico-vendas');
+                const historicoTbody = document.getElementById('historico-vendas');
+                historicoTbody.innerHTML = ''; // Limpa a tabela antes de recarregar
 
-            if (vendas.length === 0) {
-                document.getElementById('sem-vendas').style.display = 'block';
-            } else {
-                vendas.forEach(venda => {
-                    const dataVenda = new Date(venda.data);
+                if (vendas.length === 0) {
+                    document.getElementById('sem-vendas').style.display = 'block';
+                } else {
+                    document.getElementById('sem-vendas').style.display = 'none';
+                    
+                    vendas.forEach((venda, index) => {
+                        const dataVenda = new Date(venda.data);
 
-                    // Calcula totais do Mês
-                    if (dataVenda.getFullYear() === anoAtual && dataVenda.getMonth() === mesAtual) {
-                        totalVendasMes += venda.valorTotal;
-                        lucroMes += venda.lucro;
+                        // Calcula totais do Mês
+                        if (dataVenda.getFullYear() === anoAtual && dataVenda.getMonth() === mesAtual) {
+                            totalVendasMes += venda.valorTotal;
+                            lucroMes += venda.lucro;
 
-                        // Calcula totais do Dia
-                        if (dataVenda.getDate() === diaAtual) {
-                            totalVendasDia += venda.valorTotal;
-                            lucroDia += venda.lucro;
+                            // Calcula totais do Dia
+                            if (dataVenda.getDate() === diaAtual) {
+                                totalVendasDia += venda.valorTotal;
+                                lucroDia += venda.lucro;
+                            }
                         }
-                    }
 
-                    // Preenche a tabela de histórico
-                    const row = historicoTbody.insertRow(0); // Insere no topo
-                    row.insertCell(0).textContent = dataVenda.toLocaleString('pt-BR');
-                    row.insertCell(1).textContent = venda.produtoNome;
-                    row.insertCell(2).textContent = venda.quantidade;
-                    row.insertCell(3).textContent = venda.valorTotal.toFixed(2);
-                    row.insertCell(4).textContent = venda.lucro.toFixed(2);
-                });
+                        // Preenche a tabela de histórico
+                        const row = historicoTbody.insertRow(0); // Insere no topo
+                        row.dataset.index = index; // Salva o índice para exclusão
+
+                        row.insertCell(0).textContent = dataVenda.toLocaleString('pt-BR');
+                        row.insertCell(1).textContent = venda.produtoNome;
+                        row.insertCell(2).textContent = venda.quantidade;
+                        row.insertCell(3).textContent = venda.valorTotal.toFixed(2);
+                        row.insertCell(4).textContent = venda.lucro.toFixed(2);
+
+                        const actionCell = row.insertCell(5);
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Excluir';
+                        deleteButton.className = 'delete-btn';
+                        actionCell.appendChild(deleteButton);
+                    });
+                }
+
+                // Atualiza os cards de resumo
+                document.getElementById('vendas-dia').textContent = `R$ ${totalVendasDia.toFixed(2)}`;
+                document.getElementById('lucro-dia').textContent = `R$ ${lucroDia.toFixed(2)}`;
+                document.getElementById('vendas-mes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
+                document.getElementById('lucro-mes').textContent = `R$ ${lucroMes.toFixed(2)}`;
             }
 
-            // Atualiza os cards de resumo
-            document.getElementById('vendas-dia').textContent = `R$ ${totalVendasDia.toFixed(2)}`;
-            document.getElementById('lucro-dia').textContent = `R$ ${lucroDia.toFixed(2)}`;
-            document.getElementById('vendas-mes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
-            document.getElementById('lucro-mes').textContent = `R$ ${lucroMes.toFixed(2)}`;
+            carregarRelatorios();
+
+            // Lógica de exclusão
+            document.getElementById('historico-vendas').addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-btn')) {
+                    if (confirm('Tem certeza que deseja excluir este registro? Isso afetará os relatórios.')) {
+                        const row = event.target.closest('tr');
+                        const index = row.dataset.index;
+                        
+                        let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+                        vendas.splice(index, 1); // Remove pelo índice
+                        localStorage.setItem('vendas', JSON.stringify(vendas));
+                        
+                        carregarRelatorios(); // Atualiza a tela e os totais
+                    }
+                }
+            });
         });
     </script>
 </body>
