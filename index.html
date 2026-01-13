@@ -32,19 +32,7 @@
         <h1>Formulário de Cadastro de Produtos</h1>
         <p>Insira os dados do produto para cadastrar no sistema.</p>
         <br>
-        <a href="produtos.html">Ver Produtos Cadastrados</a>
-        <br>
-        <br>
         <a href="estoque-baixo.html">Produtos com Estoque Baixo</a>
-        <br>
-        <br>
-        <a href="relatorios.html">Relatórios</a>
-        <br>
-        <br>
-        <a href="saida.html">Registrar Saída</a>
-        <br>
-        <br>
-        <a href="index.html">Cadastrar Novo Produto</a> 
         <br>
 
         <video src="icones/caderno.mp4" width="150" height="150" autoplay loop muted controls>
@@ -115,24 +103,37 @@
                 const nomeProdutoSelect = document.getElementById('nome-produto');
                 const produtoId = nomeProdutoSelect.value;
                 const nomeProduto = nomeProdutoSelect.options[nomeProdutoSelect.selectedIndex].text;
-                const quantidade = document.getElementById('estoque').value;
+                const quantidade = parseInt(document.getElementById('estoque').value, 10);
                 const valorCompra = parseFloat(document.getElementById('valor-compra').value).toFixed(2);
                 const valorVenda = parseFloat(document.getElementById('valor-venda').value).toFixed(2);
 
-                const produto = {
-                    id: produtoId,
-                    nome: nomeProduto, // O texto visível, ex: "Camiseta Branca"
-                    quantidade: quantidade,
-                    valorCompra: valorCompra,
-                    valorVenda: valorVenda
-                };
-
                 // Pega os produtos já salvos no localStorage ou cria uma lista vazia
                 const produtosSalvos = JSON.parse(localStorage.getItem('produtos')) || [];
-                produtosSalvos.push(produto);
+                
+                // Verifica se o produto já existe
+                const indexExistente = produtosSalvos.findIndex(p => p.id === produtoId);
+
+                if (indexExistente !== -1) {
+                    // Se existe, soma a quantidade e atualiza os preços
+                    produtosSalvos[indexExistente].quantidade = parseInt(produtosSalvos[indexExistente].quantidade) + quantidade;
+                    produtosSalvos[indexExistente].valorCompra = valorCompra;
+                    produtosSalvos[indexExistente].valorVenda = valorVenda;
+                    alert('Produto já existente! Estoque atualizado com sucesso.');
+                } else {
+                    // Se não existe, cria um novo
+                    const produto = {
+                        id: produtoId,
+                        nome: nomeProduto,
+                        quantidade: quantidade,
+                        valorCompra: valorCompra,
+                        valorVenda: valorVenda
+                    };
+                    produtosSalvos.push(produto);
+                    alert('Produto cadastrado com sucesso!');
+                }
+
                 localStorage.setItem('produtos', JSON.stringify(produtosSalvos));
 
-                alert('Produto cadastrado com sucesso!');
                 productForm.reset(); // Limpa o formulário
             });
         </script>

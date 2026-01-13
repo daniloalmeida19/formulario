@@ -44,15 +44,25 @@
             <br>
             <button type="submit">Cadastrar Cliente</button>
         </form>
+        <br>
+        <a href="clientes.html">Ver Clientes Cadastrados</a>
     </main>
 
     <script>
         document.getElementById('client-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const nome = document.getElementById('nome-cliente').value;
-            const endereco = document.getElementById('endereco-cliente').value;
-            const telefone = document.getElementById('telefone-cliente').value;
+            const nome = document.getElementById('nome-cliente').value.trim();
+            const endereco = document.getElementById('endereco-cliente').value.trim();
+            const telefone = document.getElementById('telefone-cliente').value.trim();
+
+            const clientesSalvos = JSON.parse(localStorage.getItem('clientes')) || [];
+
+            // Verifica se o cliente já existe para evitar duplicatas
+            if (clientesSalvos.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+                alert('Este cliente já está cadastrado!');
+                return;
+            }
 
             const cliente = {
                 id: 'cliente-' + Date.now(), // Gera um ID único
@@ -61,7 +71,6 @@
                 telefone: telefone
             };
 
-            const clientesSalvos = JSON.parse(localStorage.getItem('clientes')) || [];
             clientesSalvos.push(cliente);
             localStorage.setItem('clientes', JSON.stringify(clientesSalvos));
 

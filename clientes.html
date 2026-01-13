@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
     <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
@@ -27,7 +28,6 @@
                 <tr>
                     <th>Nome</th>
                     <th>Endereço</th>
-                    <th>CEP</th>
                     <th>Telefone</th>
                 </tr>
             </thead>
@@ -83,25 +83,29 @@
 
             // Carrega e exibe o histórico de vendas
             const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            if (vendas.length === 0) {
-                historicoCompras.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhuma venda registrada ainda.</td></tr>';
-            } else {
-                // Ordena as vendas por data, da mais recente para a mais antiga
-                vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            // Ordena as vendas por data, da mais recente para a mais antiga
+            vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-                vendas.forEach(venda => {
-                    if (venda.cliente) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${venda.cliente.nome}</td>
-                            <td>${venda.produtoNome}</td>
-                            <td>${venda.quantidade}</td>
-                            <td>R$ ${parseFloat(venda.valorTotal).toFixed(2)}</td>
-                            <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
-                        `;
-                        historicoCompras.appendChild(row);
-                    }
-                });
+            let vendasExibidas = 0;
+
+            vendas.forEach(venda => {
+                if (venda.cliente) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${venda.cliente.nome}</td>
+                        <td>${venda.produtoNome}</td>
+                        <td>${venda.quantidade}</td>
+                        <td>R$ ${parseFloat(venda.valorTotal).toFixed(2)}</td>
+                        <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
+                    `;
+                    historicoCompras.appendChild(row);
+                    vendasExibidas++;
+                }
+            });
+
+            if (vendasExibidas === 0) {
+                historicoCompras.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhuma venda registrada ainda.</td></tr>';
             }
         });
     </script>
