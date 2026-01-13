@@ -260,3 +260,132 @@ tbody tr:hover {
 .btn-whatsapp:hover {
     background-color: #128C7E;
 }
+
+/* --- Cartões de Histórico por Cliente (clientes.html) --- */
+.client-history-card {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-add-produto {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.btn-add-produto:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+    color: white;
+}
+
+/* --- Gráfico de Barras (Relatórios) --- */
+.bar-container {
+    flex-grow: 1;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    height: 15px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+}
+
+.bar-fill {
+    background-color: #007bff;
+    height: 100%;
+}
+
+/* --- Botão de Imprimir --- */
+.btn-print {
+    background-color: #17a2b8; /* Azul turquesa profissional */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-bottom: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.btn-print:hover {
+    background-color: #138496;
+}
+
+/* --- Rodapé de Impressão --- */
+.print-footer {
+    display: none;
+}
+
+/* --- Estilos para Impressão (Ctrl+P) --- */
+@media print {
+    /* Força a impressão de cores de fundo e gráficos */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    nav, .btn-print, .delete-btn, .actions-container, a, button {
+        display: none !important; /* Esconde navegação e botões na impressão */
+    }
+    
+    body {
+        background-color: white;
+        color: black;
+        font-size: 12pt;
+    }
+
+    main {
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .summary-card {
+        border: 1px solid #ccc; /* Borda simples para economizar tinta */
+        box-shadow: none;
+        break-inside: avoid; /* Evita que o cartão seja cortado entre páginas */
+    }
+
+    table {
+        width: 100%;
+        border: 1px solid #000;
+    }
+    
+    th, td {
+        border: 1px solid #000;
+    }
+
+    /* Rodapé fixo apenas na impressão */
+    .print-footer {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 10pt;
+        color: #666;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+        background-color: white;
+    }
+}

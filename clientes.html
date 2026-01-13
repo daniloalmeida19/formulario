@@ -27,6 +27,8 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>CPF/CNPJ</th>
+                    <th>Interesse / Compra Atual</th>
                     <th>Endereço</th>
                     <th>Telefone</th>
                     <th>Ações</th>
@@ -40,20 +42,9 @@
         <hr style="margin: 40px 0;">
 
         <h2>Histórico de Compras por Cliente</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Produto Comprado</th>
-                    <th>Quantidade</th>
-                    <th>Valor Total (R$)</th>
-                    <th>Data da Compra</th>
-                </tr>
-            </thead>
-            <tbody id="historico-compras">
-                <!-- O histórico de compras será inserido aqui via JavaScript -->
-            </tbody>
-        </table>
+        <div id="container-carrinhos">
+            <!-- Os carrinhos separados por cliente serão inseridos aqui -->
+        </div>
 
         <div class="actions-container">
             <a href="index.html" class="btn-finalizar">Finalizar</a>
@@ -64,22 +55,24 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const listaClientesCadastrados = document.getElementById('lista-clientes-cadastrados');
-            const historicoCompras = document.getElementById('historico-compras');
+            const containerCarrinhos = document.getElementById('container-carrinhos');
 
             // Carrega e exibe os clientes cadastrados
             let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
             if (clientes.length === 0) {
-                listaClientesCadastrados.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
+                listaClientesCadastrados.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
             } else {
                 clientes.forEach(cliente => {
                     const row = listaClientesCadastrados.insertRow();
                     row.dataset.id = cliente.id; // Adiciona ID para facilitar a exclusão
 
                     row.insertCell(0).textContent = cliente.nome;
-                    row.insertCell(1).textContent = cliente.endereco;
-                    row.insertCell(2).textContent = cliente.telefone;
+                    row.insertCell(1).textContent = cliente.cpfCnpj || '-';
+                    row.insertCell(2).textContent = cliente.comprasAtual || '-';
+                    row.insertCell(3).textContent = cliente.endereco;
+                    row.insertCell(4).textContent = cliente.telefone;
 
-                    const actionCell = row.insertCell(3);
+                    const actionCell = row.insertCell(5);
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Excluir';
                     deleteButton.className = 'delete-btn';
@@ -103,38 +96,96 @@
 
                         // Se for o último cliente, mostra a mensagem
                         if (clientes.length === 0) {
-                            listaClientesCadastrados.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
+                            listaClientesCadastrados.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
                         }
+                        
+                        // Recarrega a página para atualizar os carrinhos também
+                        location.reload();
                     }
                 }
             });
 
-            // Carrega e exibe o histórico de vendas
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            
-            // Ordena as vendas por data, da mais recente para a mais antiga
-            vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            // --- Lógica dos Carrinhos Separados ---
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
 
-            let vendasExibidas = 0;
+            if (clientes.length === 0) {
+                containerCarrinhos.innerHTML = '<p style="text-align: center;">Nenhum cliente para exibir histórico.</p>';
+            } else {
+                clientes.forEach(cliente => {
+                    // Filtra as vendas deste cliente específico
+                    const vendasCliente = vendas.filter(v => v.cliente && v.cliente.id === cliente.id);
+                    
+                    // Calcula o total gasto pelo cliente
+                    const totalCliente = vendasCliente.reduce((acc, venda) => acc + (parseFloat(venda.valorTotal) || 0), 0);
 
-            vendas.forEach(venda => {
-                if (venda.cliente) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${venda.cliente.nome}</td>
-                        <td>${venda.produtoNome}</td>
-                        <td>${venda.quantidade}</td>
-                        <td>R$ ${parseFloat(venda.valorTotal).toFixed(2)}</td>
-                        <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
+                    // Cria o cartão do cliente
+                    const card = document.createElement('div');
+                    card.className = 'client-history-card';
+
+                    let htmlVendas = '';
+                    if (vendasCliente.length > 0) {
+                        htmlVendas = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Qtd.</th>
+                                        <th>Total (R$)</th>
+                                        <th>Data</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${vendasCliente.map(venda => `
+                                        <tr>
+                                            <td>${venda.produtoNome}</td>
+                                            <td>${venda.quantidade}</td>
+                                            <td>R$ ${parseFloat(venda.valorTotal).toFixed(2)}</td>
+                                            <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
+                                            <td><button class="delete-btn btn-excluir-venda" data-timestamp="${venda.data}">Excluir</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #f8f9fa;">
+                                        <td colspan="2" style="text-align: right; font-weight: bold;">Total do Carrinho:</td>
+                                        <td colspan="3" style="font-weight: bold; color: #28a745; font-size: 1.1em;">R$ ${totalCliente.toFixed(2)}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        `;
+                    } else {
+                        htmlVendas = '<p><em>Nenhuma compra registrada para este cliente.</em></p>';
+                    }
+
+                    card.innerHTML = `
+                        <div class="client-header">
+                            <h3>${cliente.nome} <span style="font-size: 0.8em; color: #666;">(${cliente.cpfCnpj || 'Sem CPF'})</span></h3>
+                            <a href="saida.html" class="btn-add-produto">Acrescentar Produto</a>
+                        </div>
+                        <p><strong>Carrinho / Interesse Atual:</strong> ${cliente.comprasAtual || 'Não informado'}</p>
+                        ${htmlVendas}
                     `;
-                    historicoCompras.appendChild(row);
-                    vendasExibidas++;
+
+                    containerCarrinhos.appendChild(card);
+                });
+            }
+
+            // Lógica para excluir uma venda específica do histórico
+            containerCarrinhos.addEventListener('click', function(event) {
+                if (event.target.classList.contains('btn-excluir-venda')) {
+                    if (confirm('Deseja remover este item do histórico do cliente?')) {
+                        const timestamp = event.target.dataset.timestamp;
+                        
+                        // Remove a venda baseada na data exata (timestamp)
+                        vendas = vendas.filter(v => v.data !== timestamp);
+                        localStorage.setItem('vendas', JSON.stringify(vendas));
+                        
+                        // Recarrega a página para atualizar a visualização
+                        location.reload();
+                    }
                 }
             });
-
-            if (vendasExibidas === 0) {
-                historicoCompras.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhuma venda registrada ainda.</td></tr>';
-            }
         });
     </script>
 </body>

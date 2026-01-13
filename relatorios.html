@@ -20,8 +20,11 @@
     </nav>
     <header>
         <h1>Relatório de Vendas</h1>
+        <p id="data-emissao" style="font-size: 0.9em; color: #666;"></p>
+        <button onclick="window.print()" class="btn-print">🖨️ Imprimir Relatório</button>
     </header>
     <main>
+        <h2>Resumo Financeiro</h2>
         <div class="summary-container">
             <div class="summary-card">
                 <h3>Vendas Totais do Dia</h3>
@@ -41,6 +44,19 @@
             </div>
         </div>
 
+        <h2>Produtos Mais Vendidos (Top 5)</h2>
+        <table style="margin-bottom: 40px;">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade Vendida</th>
+                </tr>
+            </thead>
+            <tbody id="top-produtos">
+                <!-- Ranking inserido via JS -->
+            </tbody>
+        </table>
+
         <h2>Histórico de Vendas</h2>
         <table>
             <thead>
@@ -59,6 +75,10 @@
         </table>
         <p id="sem-vendas" style="display: none;">Nenhuma venda registrada ainda.</p>
     </main>
+    
+    <footer class="print-footer">
+        <p>Relatório Gerado pelo Sistema Empresarial Romano &copy; <span id="ano-footer"></span></p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -68,10 +88,16 @@
                 const anoAtual = hoje.getFullYear();
                 const mesAtual = hoje.getMonth();
                 const diaAtual = hoje.getDate();
+                document.getElementById('ano-footer').textContent = anoAtual;
+
+                // Exibe a data de emissão
+                document.getElementById('data-emissao').textContent = 'Emitido em: ' + hoje.toLocaleString('pt-BR');
 
                 let totalVendasDia = 0, lucroDia = 0, totalVendasMes = 0, lucroMes = 0;
+                let rankingProdutos = {}; // Objeto para contar vendas por produto
 
                 const historicoTbody = document.getElementById('historico-vendas');
+                const topProdutosTbody = document.getElementById('top-produtos');
                 historicoTbody.innerHTML = ''; // Limpa a tabela antes de recarregar
 
                 if (vendas.length === 0) {
@@ -93,6 +119,9 @@
                                 lucroDia += venda.lucro;
                             }
                         }
+
+                        // Contabiliza para o ranking
+                        rankingProdutos[venda.produtoNome] = (rankingProdutos[venda.produtoNome] || 0) + venda.quantidade;
 
                         // Preenche a tabela de histórico
                         const row = historicoTbody.insertRow(0); // Insere no topo
@@ -117,6 +146,36 @@
                 document.getElementById('lucro-dia').textContent = `R$ ${lucroDia.toFixed(2)}`;
                 document.getElementById('vendas-mes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
                 document.getElementById('lucro-mes').textContent = `R$ ${lucroMes.toFixed(2)}`;
+
+                // --- Lógica do Ranking de Produtos ---
+                topProdutosTbody.innerHTML = '';
+                // Converte o objeto em array, ordena e pega os 5 primeiros
+                const sortedRanking = Object.entries(rankingProdutos)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                if (sortedRanking.length === 0) {
+                    topProdutosTbody.innerHTML = '<tr><td colspan="2">Nenhum dado disponível.</td></tr>';
+                } else {
+                    const maxQtd = sortedRanking[0][1]; // O primeiro é o maior para base do gráfico
+
+                    sortedRanking.forEach(([nome, qtd]) => {
+                        const row = topProdutosTbody.insertRow();
+                        row.insertCell(0).textContent = nome;
+                        
+                        const cellQtd = row.insertCell(1);
+                        const percentage = (qtd / maxQtd) * 100;
+                        
+                        cellQtd.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="min-width: 40px; font-weight: bold;">${qtd}</span>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${percentage}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
             }
 
             carregarRelatorios();
