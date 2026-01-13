@@ -29,6 +29,19 @@ header {
     max-width: 700px;
 }
 
+h1#nome {
+    text-align: center;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 700px;
+    color: #c82333; /* Vermelho forte para destaque */
+    font-size: 2.5em; /* Aumentar o tamanho da fonte */
+    font-weight: 900; /* Deixar a fonte bem forte */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Adicionar uma sombra */
+    border-bottom: none; /* Remover a borda de baixo do h1 genérico */
+    padding-bottom: 0; /* Remover o padding do h1 genérico */
+}   
+
 h1 {
     color: #343a40; /* Cinza escuro, quase preto */
     border-bottom: 4px solid #007bff; /* Linha azul como detalhe de marcação */
