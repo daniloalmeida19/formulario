@@ -73,6 +73,14 @@
                     row.insertCell(4).textContent = cliente.telefone;
 
                     const actionCell = row.insertCell(5);
+                    
+                    const editButton = document.createElement('a');
+                    editButton.textContent = 'Editar';
+                    editButton.href = `cadastrar-cliente.html?id=${cliente.id}`;
+                    editButton.className = 'edit-btn';
+                    editButton.style.marginRight = '5px';
+                    actionCell.appendChild(editButton);
+
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Excluir';
                     deleteButton.className = 'delete-btn';
@@ -83,8 +91,10 @@
             // Lógica para exclusão de cliente
             listaClientesCadastrados.addEventListener('click', function(event) {
                 if (event.target.classList.contains('delete-btn')) {
-                    if (confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.')) {
-                        const row = event.target.closest('tr');
+                    const row = event.target.closest('tr');
+                    const nomeCliente = row.cells[0].textContent;
+
+                    if (confirm(`Tem certeza que deseja excluir o cliente "${nomeCliente}"? Esta ação não pode ser desfeita.`)) {
                         const clienteId = row.dataset.id;
 
                         // Remove do array e atualiza o localStorage
@@ -124,6 +134,15 @@
 
                     let htmlVendas = '';
                     if (vendasCliente.length > 0) {
+                        // Gera link do WhatsApp com o resumo da nota
+                        const telefoneLimpo = (cliente.telefone || '').replace(/\D/g, '');
+                        let textoMensagem = `Olá *${cliente.nome}*, segue o resumo do seu pedido:\n\n`;
+                        vendasCliente.forEach(v => {
+                            textoMensagem += `▪ ${v.produtoNome} (${v.quantidade}x): R$ ${parseFloat(v.valorTotal).toFixed(2)}\n`;
+                        });
+                        textoMensagem += `\n*Total: R$ ${totalCliente.toFixed(2)}*`;
+                        const linkWhatsapp = `https://wa.me/55${telefoneLimpo}?text=${encodeURIComponent(textoMensagem)}`;
+
                         htmlVendas = `
                             <table>
                                 <thead>
@@ -153,6 +172,9 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                            <div style="margin-top: 15px; text-align: right;">
+                                <a href="${linkWhatsapp}" target="_blank" class="btn-whatsapp" style="font-size: 0.9em; padding: 8px 15px;">📲 Enviar Nota</a>
+                            </div>
                         `;
                     } else {
                         htmlVendas = '<p><em>Nenhuma compra registrada para este cliente.</em></p>';

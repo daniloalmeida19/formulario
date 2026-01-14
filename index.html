@@ -46,19 +46,23 @@
 
                 <div>
                     <label for="nome-produto">Nome do Produto:</label><br>
-                    <select id="nome-produto" name="nome_produto" required>
-                        <option value="" disabled selected>Selecione um produto</option>
-                        <option value="camiseta-branca">Camiseta Branca</option>
-                        <option value="calca-jeans">Calça Jeans</option>
-                        <option value="tenis-esportivo">Tênis Esportivo</option>
-                        <option value="moletom-preto">Moletom Preto</option>
-                        <option value="bermuda-tactel">Bermuda Tactel</option>
-                        <option value="vestido-floral">Vestido Floral</option>
-                        <option value="sapato-social">Sapato Social</option>
-                        <option value="jaqueta-couro">Jaqueta de Couro</option>
-                        <option value="oculos-sol">Óculos de Sol</option>
-                        <option value="relogio-pulso">Relógio de Pulso</option>
-                    </select>
+                    <input type="text" id="nome-produto" name="nome_produto" list="lista-produtos" placeholder="Digite ou selecione o nome do produto" required>
+                    <datalist id="lista-produtos">
+                        <option value="Camiseta Branca">
+                        <option value="Calça Jeans">
+                        <option value="Tênis Esportivo">
+                        <option value="Moletom Preto">
+                        <option value="Bermuda Tactel">
+                        <option value="Vestido Floral">
+                        <option value="Sapato Social">
+                        <option value="Jaqueta de Couro">
+                        <option value="Óculos de Sol">
+                        <option value="Relógio de Pulso">
+                        <option value="Camisa Polo">
+                        <option value="Saia Jeans">
+                        <option value="Boné">
+                        <option value="Bolsa">
+                    </datalist>
                 </div>
                 <br>
                 <div>
@@ -88,6 +92,27 @@
             const estoqueInput = document.getElementById('estoque');
             const alertaEstoque = document.getElementById('alerta-estoque');
 
+            // Verifica se há um ID na URL para edição
+            const urlParams = new URLSearchParams(window.location.search);
+            const produtoIdEditar = urlParams.get('id');
+
+            if (produtoIdEditar) {
+                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+                const produto = produtos.find(p => p.id === produtoIdEditar);
+                if (produto) {
+                    const inputNome = document.getElementById('nome-produto');
+                    inputNome.value = produto.nome;
+                    inputNome.disabled = true; // Bloqueia a troca do produto durante a edição
+                    
+                    document.getElementById('estoque').value = produto.quantidade;
+                    document.getElementById('valor-compra').value = produto.valorCompra;
+                    document.getElementById('valor-venda').value = produto.valorVenda;
+
+                    document.querySelector('button[type="submit"]').textContent = 'Salvar Alterações';
+                    document.querySelector('header h1').textContent = 'Editar Produto';
+                }
+            }
+
             // Adiciona um "ouvinte" para o alerta de estoque baixo
             estoqueInput.addEventListener('input', function() {
                 const quantidade = parseInt(this.value, 10);
@@ -100,9 +125,11 @@
                 event.preventDefault(); // Impede o envio padrão do formulário
 
                 // Pega os valores dos campos
-                const nomeProdutoSelect = document.getElementById('nome-produto');
-                const produtoId = nomeProdutoSelect.value;
-                const nomeProduto = nomeProdutoSelect.options[nomeProdutoSelect.selectedIndex].text;
+                const nomeProdutoInput = document.getElementById('nome-produto');
+                const nomeProduto = nomeProdutoInput.value.trim();
+                // Gera um ID baseado no nome (ex: "Calça Jeans" -> "calca-jeans")
+                const produtoId = nomeProduto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+
                 const quantidade = parseInt(document.getElementById('estoque').value, 10);
                 const valorCompra = parseFloat(document.getElementById('valor-compra').value).toFixed(2);
                 const valorVenda = parseFloat(document.getElementById('valor-venda').value).toFixed(2);
@@ -110,6 +137,21 @@
                 // Pega os produtos já salvos no localStorage ou cria uma lista vazia
                 const produtosSalvos = JSON.parse(localStorage.getItem('produtos')) || [];
                 
+                // Lógica de Edição (Substituição dos dados)
+                if (produtoIdEditar) {
+                    const index = produtosSalvos.findIndex(p => p.id === produtoIdEditar);
+                    if (index !== -1) {
+                        produtosSalvos[index].quantidade = quantidade; // Substitui a quantidade (correção)
+                        produtosSalvos[index].valorCompra = valorCompra;
+                        produtosSalvos[index].valorVenda = valorVenda;
+                        
+                        localStorage.setItem('produtos', JSON.stringify(produtosSalvos));
+                        alert('Produto atualizado com sucesso!');
+                        window.location.href = 'produtos.html';
+                        return;
+                    }
+                }
+
                 // Verifica se o produto já existe
                 const indexExistente = produtosSalvos.findIndex(p => p.id === produtoId);
 

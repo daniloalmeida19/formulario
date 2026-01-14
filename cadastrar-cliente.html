@@ -59,6 +59,25 @@
     </main>
 
     <script>
+        // Verifica se há um ID na URL para edição
+        const urlParams = new URLSearchParams(window.location.search);
+        const clienteIdEditar = urlParams.get('id');
+
+        if (clienteIdEditar) {
+            const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            const cliente = clientes.find(c => c.id === clienteIdEditar);
+            if (cliente) {
+                document.getElementById('nome-cliente').value = cliente.nome;
+                document.getElementById('cpf-cnpj').value = cliente.cpfCnpj;
+                document.getElementById('compras-atual').value = cliente.comprasAtual;
+                document.getElementById('endereco-cliente').value = cliente.endereco;
+                document.getElementById('telefone-cliente').value = cliente.telefone;
+                
+                document.querySelector('button[type="submit"]').textContent = 'Salvar Alterações';
+                document.querySelector('header h1').textContent = 'Editar Cliente';
+            }
+        }
+
         document.getElementById('client-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -70,12 +89,32 @@
 
             const clientesSalvos = JSON.parse(localStorage.getItem('clientes')) || [];
 
-            // Verifica se o cliente já existe para evitar duplicatas
-            if (clientesSalvos.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+            // Verifica se o cliente já existe para evitar duplicatas (ignorando o próprio se estiver editando)
+            const nomeJaExiste = clientesSalvos.some(c => c.nome.toLowerCase() === nome.toLowerCase() && c.id !== clienteIdEditar);
+
+            if (nomeJaExiste) {
                 alert('Este cliente já está cadastrado!');
                 return;
             }
 
+            if (clienteIdEditar) {
+                // Lógica de Atualização
+                const index = clientesSalvos.findIndex(c => c.id === clienteIdEditar);
+                if (index !== -1) {
+                    clientesSalvos[index].nome = nome;
+                    clientesSalvos[index].cpfCnpj = cpfCnpj;
+                    clientesSalvos[index].comprasAtual = comprasAtual;
+                    clientesSalvos[index].endereco = endereco;
+                    clientesSalvos[index].telefone = telefone;
+                    
+                    localStorage.setItem('clientes', JSON.stringify(clientesSalvos));
+                    alert('Cliente atualizado com sucesso!');
+                    window.location.href = 'clientes.html'; // Volta para a lista
+                    return;
+                }
+            }
+
+            // Lógica de Cadastro Novo
             const cliente = {
                 id: 'cliente-' + Date.now(), // Gera um ID único
                 nome: nome,
@@ -84,7 +123,7 @@
                 endereco: endereco,
                 telefone: telefone
             };
-
+            
             clientesSalvos.push(cliente);
             localStorage.setItem('clientes', JSON.stringify(clientesSalvos));
 

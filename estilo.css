@@ -172,6 +172,26 @@ button[type="submit"]:hover {
     background-color: #c82333; /* Vermelho mais escuro no hover */
 }
 
+/* --- Botão de Edição --- */
+.edit-btn {
+    background-color: #ffc107; /* Amarelo/Laranja para edição */
+    color: #212529;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.edit-btn:hover {
+    background-color: #e0a800;
+    text-decoration: none;
+    color: #212529;
+}
+
 /* --- Estilos da Tabela (produtos.html) --- */
 table {
     width: 100%;

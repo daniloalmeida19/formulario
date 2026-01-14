@@ -62,6 +62,14 @@
                     row.insertCell(4).textContent = lucro;
 
                     const actionCell = row.insertCell(5);
+                    
+                    const editButton = document.createElement('a');
+                    editButton.textContent = 'Editar';
+                    editButton.href = `index.html?id=${p.id}`;
+                    editButton.className = 'edit-btn';
+                    editButton.style.marginRight = '5px';
+                    actionCell.appendChild(editButton);
+
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Excluir';
                     deleteButton.className = 'delete-btn';
@@ -72,8 +80,10 @@
             // Lógica para exclusão (usando delegação de eventos)
             listaProdutos.addEventListener('click', function(event) {
                 if (event.target.classList.contains('delete-btn')) {
-                    if (confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) {
-                        const row = event.target.closest('tr');
+                    const row = event.target.closest('tr');
+                    const nomeProduto = row.cells[0].textContent;
+
+                    if (confirm(`Tem certeza que deseja excluir o produto "${nomeProduto}"? Esta ação não pode ser desfeita.`)) {
                         const produtoId = row.dataset.id;
 
                         // Remove do array e atualiza o localStorage
