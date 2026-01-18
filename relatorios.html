@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório de Vendas</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
     <link rel="stylesheet" href="estilo.css">
+    <script src="auth.js"></script>
 </head>
 <body>
     <nav>
@@ -19,8 +21,11 @@
     </nav>
     <header>
         <h1>Relatório de Vendas</h1>
+        <p id="data-emissao" style="font-size: 0.9em; color: #666;"></p>
+        <button onclick="window.print()" class="btn-print">🖨️ Imprimir Relatório</button>
     </header>
     <main>
+        <h2>Resumo Financeiro</h2>
         <div class="summary-container">
             <div class="summary-card">
                 <h3>Vendas Totais do Dia</h3>
@@ -40,6 +45,19 @@
             </div>
         </div>
 
+        <h2>Produtos Mais Vendidos (Top 5)</h2>
+        <table style="margin-bottom: 40px;">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade Vendida</th>
+                </tr>
+            </thead>
+            <tbody id="top-produtos">
+                <!-- Ranking inserido via JS -->
+            </tbody>
+        </table>
+
         <h2>Histórico de Vendas</h2>
         <table>
             <thead>
@@ -49,6 +67,7 @@
                     <th>Qtd.</th>
                     <th>Valor Venda (R$)</th>
                     <th>Lucro (R$)</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="historico-vendas">
@@ -57,52 +76,126 @@
         </table>
         <p id="sem-vendas" style="display: none;">Nenhuma venda registrada ainda.</p>
     </main>
+    
+    <footer class="print-footer">
+        <p>Relatório Gerado pelo Sistema Empresarial Romano &copy; <span id="ano-footer"></span></p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            const hoje = new Date();
-            const anoAtual = hoje.getFullYear();
-            const mesAtual = hoje.getMonth();
-            const diaAtual = hoje.getDate();
+            function carregarRelatorios() {
+                const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+                const hoje = new Date();
+                const anoAtual = hoje.getFullYear();
+                const mesAtual = hoje.getMonth();
+                const diaAtual = hoje.getDate();
+                document.getElementById('ano-footer').textContent = anoAtual;
 
-            let totalVendasDia = 0, lucroDia = 0, totalVendasMes = 0, lucroMes = 0;
+                // Exibe a data de emissão
+                document.getElementById('data-emissao').textContent = 'Emitido em: ' + hoje.toLocaleString('pt-BR');
 
-            const historicoTbody = document.getElementById('historico-vendas');
+                let totalVendasDia = 0, lucroDia = 0, totalVendasMes = 0, lucroMes = 0;
+                let rankingProdutos = {}; // Objeto para contar vendas por produto
 
-            if (vendas.length === 0) {
-                document.getElementById('sem-vendas').style.display = 'block';
-            } else {
-                vendas.forEach(venda => {
-                    const dataVenda = new Date(venda.data);
+                const historicoTbody = document.getElementById('historico-vendas');
+                const topProdutosTbody = document.getElementById('top-produtos');
+                historicoTbody.innerHTML = ''; // Limpa a tabela antes de recarregar
 
-                    // Calcula totais do Mês
-                    if (dataVenda.getFullYear() === anoAtual && dataVenda.getMonth() === mesAtual) {
-                        totalVendasMes += venda.valorTotal;
-                        lucroMes += venda.lucro;
+                if (vendas.length === 0) {
+                    document.getElementById('sem-vendas').style.display = 'block';
+                } else {
+                    document.getElementById('sem-vendas').style.display = 'none';
+                    
+                    vendas.forEach((venda, index) => {
+                        const dataVenda = new Date(venda.data);
 
-                        // Calcula totais do Dia
-                        if (dataVenda.getDate() === diaAtual) {
-                            totalVendasDia += venda.valorTotal;
-                            lucroDia += venda.lucro;
+                        // Calcula totais do Mês
+                        if (dataVenda.getFullYear() === anoAtual && dataVenda.getMonth() === mesAtual) {
+                            totalVendasMes += venda.valorTotal;
+                            lucroMes += venda.lucro;
+
+                            // Calcula totais do Dia
+                            if (dataVenda.getDate() === diaAtual) {
+                                totalVendasDia += venda.valorTotal;
+                                lucroDia += venda.lucro;
+                            }
                         }
-                    }
 
-                    // Preenche a tabela de histórico
-                    const row = historicoTbody.insertRow(0); // Insere no topo
-                    row.insertCell(0).textContent = dataVenda.toLocaleString('pt-BR');
-                    row.insertCell(1).textContent = venda.produtoNome;
-                    row.insertCell(2).textContent = venda.quantidade;
-                    row.insertCell(3).textContent = venda.valorTotal.toFixed(2);
-                    row.insertCell(4).textContent = venda.lucro.toFixed(2);
-                });
+                        // Contabiliza para o ranking
+                        rankingProdutos[venda.produtoNome] = (rankingProdutos[venda.produtoNome] || 0) + venda.quantidade;
+
+                        // Preenche a tabela de histórico
+                        const row = historicoTbody.insertRow(0); // Insere no topo
+                        row.dataset.index = index; // Salva o índice para exclusão
+
+                        row.insertCell(0).textContent = dataVenda.toLocaleString('pt-BR');
+                        row.insertCell(1).textContent = venda.produtoNome;
+                        row.insertCell(2).textContent = venda.quantidade;
+                        row.insertCell(3).textContent = venda.valorTotal.toFixed(2);
+                        row.insertCell(4).textContent = venda.lucro.toFixed(2);
+
+                        const actionCell = row.insertCell(5);
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Excluir';
+                        deleteButton.className = 'delete-btn';
+                        actionCell.appendChild(deleteButton);
+                    });
+                }
+
+                // Atualiza os cards de resumo
+                document.getElementById('vendas-dia').textContent = `R$ ${totalVendasDia.toFixed(2)}`;
+                document.getElementById('lucro-dia').textContent = `R$ ${lucroDia.toFixed(2)}`;
+                document.getElementById('vendas-mes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
+                document.getElementById('lucro-mes').textContent = `R$ ${lucroMes.toFixed(2)}`;
+
+                // --- Lógica do Ranking de Produtos ---
+                topProdutosTbody.innerHTML = '';
+                // Converte o objeto em array, ordena e pega os 5 primeiros
+                const sortedRanking = Object.entries(rankingProdutos)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                if (sortedRanking.length === 0) {
+                    topProdutosTbody.innerHTML = '<tr><td colspan="2">Nenhum dado disponível.</td></tr>';
+                } else {
+                    const maxQtd = sortedRanking[0][1]; // O primeiro é o maior para base do gráfico
+
+                    sortedRanking.forEach(([nome, qtd]) => {
+                        const row = topProdutosTbody.insertRow();
+                        row.insertCell(0).textContent = nome;
+                        
+                        const cellQtd = row.insertCell(1);
+                        const percentage = (qtd / maxQtd) * 100;
+                        
+                        cellQtd.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="min-width: 40px; font-weight: bold;">${qtd}</span>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${percentage}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
             }
 
-            // Atualiza os cards de resumo
-            document.getElementById('vendas-dia').textContent = `R$ ${totalVendasDia.toFixed(2)}`;
-            document.getElementById('lucro-dia').textContent = `R$ ${lucroDia.toFixed(2)}`;
-            document.getElementById('vendas-mes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
-            document.getElementById('lucro-mes').textContent = `R$ ${lucroMes.toFixed(2)}`;
+            carregarRelatorios();
+
+            // Lógica de exclusão
+            document.getElementById('historico-vendas').addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-btn')) {
+                    if (confirm('Tem certeza que deseja excluir este registro? Isso afetará os relatórios.')) {
+                        const row = event.target.closest('tr');
+                        const index = row.dataset.index;
+                        
+                        let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+                        vendas.splice(index, 1); // Remove pelo índice
+                        localStorage.setItem('vendas', JSON.stringify(vendas));
+                        
+                        carregarRelatorios(); // Atualiza a tela e os totais
+                    }
+                }
+            });
         });
     </script>
 </body>

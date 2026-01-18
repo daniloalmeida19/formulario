@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema Empresarial</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <main style="margin-top: 10vh; max-width: 400px;">
+        <header>
+            <h1>Acesso ao Sistema</h1>
+            <p>Por favor, faça login para continuar.</p>
+        </header>
+        <form id="login-form" autocomplete="off">
+            <fieldset>
+                <legend>Credenciais</legend>
+                <div>
+                    <label for="usuario">Usuário:</label>
+                    <input type="text" id="usuario" placeholder="Digite seu usuário" required>
+                </div>
+                <br>
+                <div>
+                    <label for="senha">Senha:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="senha" placeholder="Digite sua senha" required>
+                        <span class="toggle-password" data-target="senha">👁️</span>
+                    </div>
+                </div>
+                <div id="campo-confirmar" style="display: none;">
+                    <br>
+                    <label for="confirmar-senha">Repetir Senha:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmar-senha" placeholder="Confirme sua senha">
+                        <span class="toggle-password" data-target="confirmar-senha">👁️</span>
+                    </div>
+                </div>
+                <div id="campos-cadastro" style="display: none;">
+                    <br>
+                    <div>
+                        <label for="email">E-mail:</label>
+                        <input type="email" id="email" placeholder="exemplo@email.com">
+                    </div>
+                    <br>
+                    <div>
+                        <label for="celular">Celular:</label>
+                        <input type="tel" id="celular" placeholder="(XX) 99999-9999">
+                    </div>
+                </div>
+            </fieldset>
+            <br>
+            <button type="submit">Entrar</button>
+            
+            <div class="login-links">
+                <a id="link-esqueci">Esqueci a senha</a>
+                <a id="link-cadastro">Criar conta</a>
+            </div>
+        </form>
+        <p id="erro-login" style="color: #dc3545; text-align: center; display: none; margin-top: 15px; font-weight: bold;">Usuário ou senha incorretos.</p>
+        <p id="sucesso-msg" style="color: #28a745; text-align: center; display: none; margin-top: 15px; font-weight: bold;"></p>
+
+        <div id="area-recuperacao" style="display: none; text-align: center;">
+            <h2 style="color: #343a40;">Recuperar Senha</h2>
+            <p>Como deseja receber sua senha?</p>
+            <button type="button" id="btn-rec-email" style="background-color: #007bff; color: white; border: none; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 5px; cursor: pointer;">📧 Enviar por E-mail</button>
+            <button type="button" id="btn-rec-celular" style="background-color: #28a745; color: white; border: none; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 5px; cursor: pointer;">📱 Enviar por Celular</button>
+            <br><br>
+            <a id="btn-voltar-login" style="cursor: pointer; color: #007bff; text-decoration: underline;">Voltar ao Login</a>
+        </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script>
+        const form = document.getElementById('login-form');
+        const titulo = document.querySelector('header h1');
+        const btnSubmit = document.querySelector('button[type="submit"]');
+        const campoConfirmar = document.getElementById('campo-confirmar');
+        const camposCadastro = document.getElementById('campos-cadastro');
+        const inputConfirmar = document.getElementById('confirmar-senha');
+        const linkCadastro = document.getElementById('link-cadastro');
+        const linkEsqueci = document.getElementById('link-esqueci');
+        const msgErro = document.getElementById('erro-login');
+        const msgSucesso = document.getElementById('sucesso-msg');
+
+        // Funcionalidade de Mostrar/Ocultar Senha
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const inputId = this.getAttribute('data-target');
+                const input = document.getElementById(inputId);
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.textContent = '🙈'; // Ícone de "esconder" (macaco cobrindo olhos)
+                } else {
+                    input.type = 'password';
+                    this.textContent = '👁️'; // Ícone de "ver" (olho)
+                }
+            });
+        });
+
+        let modoCadastro = false;
+
+        // Alternar entre Login e Cadastro
+        linkCadastro.addEventListener('click', function() {
+            modoCadastro = !modoCadastro;
+            msgErro.style.display = 'none';
+            msgSucesso.style.display = 'none';
+
+            if (modoCadastro) {
+                titulo.textContent = 'Criar Nova Conta';
+                btnSubmit.textContent = 'Cadastrar';
+                linkCadastro.textContent = 'Já tenho conta';
+                campoConfirmar.style.display = 'block';
+                camposCadastro.style.display = 'block';
+                linkEsqueci.style.visibility = 'hidden'; // Esconde "Esqueci a senha" no cadastro
+                inputConfirmar.required = true;
+            } else {
+                titulo.textContent = 'Acesso ao Sistema';
+                btnSubmit.textContent = 'Entrar';
+                linkCadastro.textContent = 'Criar conta';
+                campoConfirmar.style.display = 'none';
+                camposCadastro.style.display = 'none';
+                linkEsqueci.style.visibility = 'visible';
+                inputConfirmar.required = false;
+            }
+        });
+
+        // Elementos da área de recuperação
+        const areaRecuperacao = document.getElementById('area-recuperacao');
+        const btnVoltar = document.getElementById('btn-voltar-login');
+        const btnRecEmail = document.getElementById('btn-rec-email');
+        const btnRecCelular = document.getElementById('btn-rec-celular');
+        let usuarioParaRecuperar = null;
+
+        // Funcionalidade "Esqueci a senha"
+        linkEsqueci.addEventListener('click', function() {
+            const usuario = document.getElementById('usuario').value;
+            if (!usuario) {
+                alert('Por favor, digite seu Usuário no campo acima para recuperar a senha.');
+                return;
+            }
+
+            const usuariosSalvos = JSON.parse(localStorage.getItem('usuarios')) || [];
+            const userEncontrado = usuariosSalvos.find(u => u.user === usuario);
+
+            if (usuario === 'admin') {
+                usuarioParaRecuperar = { user: 'admin', pass: '1234', email: 'admin@sistema.com', celular: '999999999' };
+                mostrarOpcoesRecuperacao();
+            } else if (userEncontrado) {
+                usuarioParaRecuperar = userEncontrado;
+                mostrarOpcoesRecuperacao();
+            } else {
+                alert('Usuário não encontrado.');
+            }
+        });
+
+        function mostrarOpcoesRecuperacao() {
+            form.style.display = 'none';
+            document.querySelector('header').style.display = 'none';
+            areaRecuperacao.style.display = 'block';
+            msgErro.style.display = 'none';
+        }
+
+        btnVoltar.addEventListener('click', function() {
+            areaRecuperacao.style.display = 'none';
+            document.querySelector('header').style.display = 'block';
+            form.style.display = 'block';
+        });
+
+        btnRecEmail.addEventListener('click', function() {
+            const email = usuarioParaRecuperar.email || 'Não cadastrado';
+            if (email === 'Não cadastrado') {
+                alert('Este usuário não possui e-mail cadastrado.');
+            } else {
+                alert(`(Simulação) Uma mensagem com a senha foi enviada para o e-mail: ${email}`);
+            }
+        });
+
+        btnRecCelular.addEventListener('click', function() {
+            const celular = usuarioParaRecuperar.celular || 'Não cadastrado';
+            if (celular === 'Não cadastrado') {
+                alert('Este usuário não possui celular cadastrado.');
+            } else {
+                alert(`(Simulação) Um SMS com a senha foi enviado para o número: ${celular}`);
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+            const usuariosSalvos = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+            if (modoCadastro) {
+                // Lógica de Cadastro
+                const confirmar = inputConfirmar.value;
+                const email = document.getElementById('email').value;
+                const celular = document.getElementById('celular').value;
+                
+                if (senha !== confirmar) {
+                    msgErro.textContent = 'As senhas não coincidem.';
+                    msgErro.style.display = 'block';
+                    return;
+                }
+
+                if (usuario === 'admin' || usuariosSalvos.some(u => u.user === usuario)) {
+                    msgErro.textContent = 'Este usuário já existe.';
+                    msgErro.style.display = 'block';
+                    return;
+                }
+
+                usuariosSalvos.push({ user: usuario, pass: senha, email: email, celular: celular });
+                localStorage.setItem('usuarios', JSON.stringify(usuariosSalvos));
+                
+                msgSucesso.textContent = 'Conta criada com sucesso! Faça login.';
+                msgSucesso.style.display = 'block';
+                msgErro.style.display = 'none';
+                
+                // Volta para o modo de login
+                linkCadastro.click();
+                form.reset();
+                document.getElementById('usuario').value = usuario; // Preenche o usuário criado
+
+            } else {
+                // Lógica de Login
+                const userEncontrado = usuariosSalvos.find(u => u.user === usuario && u.pass === senha);
+
+                if ((usuario === 'admin' && senha === '1234') || userEncontrado) {
+                    sessionStorage.setItem('usuarioLogado', 'true');
+                    form.reset(); // Limpa os campos para segurança antes de redirecionar
+                    window.location.href = 'index.html';
+                } else {
+                    msgErro.textContent = 'Usuário ou senha incorretos.';
+                    msgErro.style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

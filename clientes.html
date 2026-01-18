@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes</title>
+    <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
     <link rel="stylesheet" href="estilo.css">
+    <script src="auth.js"></script>
 </head>
 <body>
     <nav>
@@ -26,8 +28,11 @@
             <thead>
                 <tr>
                     <th>Nome</th>
+                    <th>CPF/CNPJ</th>
+                    <th>Interesse / Compra Atual</th>
                     <th>Endereço</th>
                     <th>Telefone</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="lista-clientes-cadastrados">
@@ -38,63 +43,172 @@
         <hr style="margin: 40px 0;">
 
         <h2>Histórico de Compras por Cliente</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Produto Comprado</th>
-                    <th>Quantidade</th>
-                    <th>Data da Compra</th>
-                </tr>
-            </thead>
-            <tbody id="historico-compras">
-                <!-- O histórico de compras será inserido aqui via JavaScript -->
-            </tbody>
-        </table>
+        <div id="container-carrinhos">
+            <!-- Os carrinhos separados por cliente serão inseridos aqui -->
+        </div>
+
+        <div class="actions-container">
+            <a href="index.html" class="btn-finalizar">Finalizar</a>
+            <a href="https://wa.me/5511941233423?text=Ol%C3%A1,%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es" target="_blank" class="btn-whatsapp">Falar no WhatsApp</a>
+        </div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const listaClientesCadastrados = document.getElementById('lista-clientes-cadastrados');
-            const historicoCompras = document.getElementById('historico-compras');
+            const containerCarrinhos = document.getElementById('container-carrinhos');
 
             // Carrega e exibe os clientes cadastrados
-            const clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+            let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
             if (clientes.length === 0) {
-                listaClientesCadastrados.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
+                listaClientesCadastrados.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
             } else {
                 clientes.forEach(cliente => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${cliente.nome}</td>
-                        <td>${cliente.endereco}</td>
-                        <td>${cliente.telefone}</td>
-                    `;
-                    listaClientesCadastrados.appendChild(row);
+                    const row = listaClientesCadastrados.insertRow();
+                    row.dataset.id = cliente.id; // Adiciona ID para facilitar a exclusão
+
+                    row.insertCell(0).textContent = cliente.nome;
+                    row.insertCell(1).textContent = cliente.cpfCnpj || '-';
+                    row.insertCell(2).textContent = cliente.comprasAtual || '-';
+                    row.insertCell(3).textContent = cliente.endereco;
+                    row.insertCell(4).textContent = cliente.telefone;
+
+                    const actionCell = row.insertCell(5);
+                    
+                    const editButton = document.createElement('a');
+                    editButton.textContent = 'Editar';
+                    editButton.href = `cadastrar-cliente.html?id=${cliente.id}`;
+                    editButton.className = 'edit-btn';
+                    editButton.style.marginRight = '5px';
+                    actionCell.appendChild(editButton);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Excluir';
+                    deleteButton.className = 'delete-btn';
+                    actionCell.appendChild(deleteButton);
                 });
             }
 
-            // Carrega e exibe o histórico de vendas
-            const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
-            if (vendas.length === 0) {
-                historicoCompras.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhuma venda registrada ainda.</td></tr>';
-            } else {
-                // Ordena as vendas por data, da mais recente para a mais antiga
-                vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            // Lógica para exclusão de cliente
+            listaClientesCadastrados.addEventListener('click', function(event) {
+                if (event.target.classList.contains('delete-btn')) {
+                    const row = event.target.closest('tr');
+                    const nomeCliente = row.cells[0].textContent;
 
-                vendas.forEach(venda => {
-                    if (venda.cliente) {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${venda.cliente.nome}</td>
-                            <td>${venda.produtoNome}</td>
-                            <td>${venda.quantidade}</td>
-                            <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
-                        `;
-                        historicoCompras.appendChild(row);
+                    if (confirm(`Tem certeza que deseja excluir o cliente "${nomeCliente}"? Esta ação não pode ser desfeita.`)) {
+                        const clienteId = row.dataset.id;
+
+                        // Remove do array e atualiza o localStorage
+                        clientes = clientes.filter(c => c.id !== clienteId);
+                        localStorage.setItem('clientes', JSON.stringify(clientes));
+
+                        // Remove a linha da tabela na tela
+                        row.remove();
+
+                        // Se for o último cliente, mostra a mensagem
+                        if (clientes.length === 0) {
+                            listaClientesCadastrados.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente cadastrado ainda.</td></tr>';
+                        }
+                        
+                        // Recarrega a página para atualizar os carrinhos também
+                        location.reload();
                     }
+                }
+            });
+
+            // --- Lógica dos Carrinhos Separados ---
+            let vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+
+            if (clientes.length === 0) {
+                containerCarrinhos.innerHTML = '<p style="text-align: center;">Nenhum cliente para exibir histórico.</p>';
+            } else {
+                clientes.forEach(cliente => {
+                    // Filtra as vendas deste cliente específico
+                    const vendasCliente = vendas.filter(v => v.cliente && v.cliente.id === cliente.id);
+                    
+                    // Calcula o total gasto pelo cliente
+                    const totalCliente = vendasCliente.reduce((acc, venda) => acc + (parseFloat(venda.valorTotal) || 0), 0);
+
+                    // Cria o cartão do cliente
+                    const card = document.createElement('div');
+                    card.className = 'client-history-card';
+
+                    let htmlVendas = '';
+                    if (vendasCliente.length > 0) {
+                        // Gera link do WhatsApp com o resumo da nota
+                        const telefoneLimpo = (cliente.telefone || '').replace(/\D/g, '');
+                        let textoMensagem = `Olá *${cliente.nome}*, segue o resumo do seu pedido:\n\n`;
+                        vendasCliente.forEach(v => {
+                            textoMensagem += `▪ ${v.produtoNome} (${v.quantidade}x): R$ ${parseFloat(v.valorTotal).toFixed(2)}\n`;
+                        });
+                        textoMensagem += `\n*Total: R$ ${totalCliente.toFixed(2)}*`;
+                        const linkWhatsapp = `https://wa.me/55${telefoneLimpo}?text=${encodeURIComponent(textoMensagem)}`;
+
+                        htmlVendas = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Qtd.</th>
+                                        <th>Total (R$)</th>
+                                        <th>Data</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${vendasCliente.map(venda => `
+                                        <tr>
+                                            <td>${venda.produtoNome}</td>
+                                            <td>${venda.quantidade}</td>
+                                            <td>R$ ${parseFloat(venda.valorTotal).toFixed(2)}</td>
+                                            <td>${new Date(venda.data).toLocaleDateString('pt-BR')}</td>
+                                            <td><button class="delete-btn btn-excluir-venda" data-timestamp="${venda.data}">Excluir</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #f8f9fa;">
+                                        <td colspan="2" style="text-align: right; font-weight: bold;">Total do Carrinho:</td>
+                                        <td colspan="3" style="font-weight: bold; color: #28a745; font-size: 1.1em;">R$ ${totalCliente.toFixed(2)}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <div style="margin-top: 15px; text-align: right;">
+                                <a href="${linkWhatsapp}" target="_blank" class="btn-whatsapp" style="font-size: 0.9em; padding: 8px 15px;">📲 Enviar Nota</a>
+                            </div>
+                        `;
+                    } else {
+                        htmlVendas = '<p><em>Nenhuma compra registrada para este cliente.</em></p>';
+                    }
+
+                    card.innerHTML = `
+                        <div class="client-header">
+                            <h3>${cliente.nome} <span style="font-size: 0.8em; color: #666;">(${cliente.cpfCnpj || 'Sem CPF'})</span></h3>
+                            <a href="saida.html" class="btn-add-produto">Acrescentar Produto</a>
+                        </div>
+                        <p><strong>Carrinho / Interesse Atual:</strong> ${cliente.comprasAtual || 'Não informado'}</p>
+                        ${htmlVendas}
+                    `;
+
+                    containerCarrinhos.appendChild(card);
                 });
             }
+
+            // Lógica para excluir uma venda específica do histórico
+            containerCarrinhos.addEventListener('click', function(event) {
+                if (event.target.classList.contains('btn-excluir-venda')) {
+                    if (confirm('Deseja remover este item do histórico do cliente?')) {
+                        const timestamp = event.target.dataset.timestamp;
+                        
+                        // Remove a venda baseada na data exata (timestamp)
+                        vendas = vendas.filter(v => v.data !== timestamp);
+                        localStorage.setItem('vendas', JSON.stringify(vendas));
+                        
+                        // Recarrega a página para atualizar a visualização
+                        location.reload();
+                    }
+                }
+            });
         });
     </script>
 </body>

@@ -6,6 +6,7 @@
     <title>Formulário Empresárial</title>
     <link rel="shortcut icon" href="icones/lista-de-controle.gif" type="image/x-icon">
     <link rel="stylesheet" href="estilo.css">
+    <script src="auth.js"></script>
 </head>
 <body>
 
@@ -13,31 +14,26 @@
 
     <nav>
         <ul>
-            <li><a href="index.html" class="active">Cadastrar Produto</a></li>
+
             <li><a href="cadastrar-cliente.html">Cadastrar Cliente</a></li>
+
+            <li><a href="index.html" class="active">Cadastrar Produto</a></li>
+            
             <li><a href="produtos.html">Ver Estoque</a></li>
+
             <li><a href="saida.html">Registrar Saída</a></li>
+
             <li><a href="relatorios.html">Relatórios</a></li>
+
             <li><a href="clientes.html">Clientes</a></li>
+            
         </ul>
     </nav>
     <header>
         <h1>Formulário de Cadastro de Produtos</h1>
         <p>Insira os dados do produto para cadastrar no sistema.</p>
         <br>
-        <a href="produtos.html">Ver Produtos Cadastrados</a>
-        <br>
-        <br>
         <a href="estoque-baixo.html">Produtos com Estoque Baixo</a>
-        <br>
-        <br>
-        <a href="relatorios.html">Relatórios</a>
-        <br>
-        <br>
-        <a href="saida.html">Registrar Saída</a>
-        <br>
-        <br>
-        <a href="index.html">Cadastrar Novo Produto</a> 
         <br>
 
         <video src="icones/caderno.mp4" width="150" height="150" autoplay loop muted controls>
@@ -51,19 +47,23 @@
 
                 <div>
                     <label for="nome-produto">Nome do Produto:</label><br>
-                    <select id="nome-produto" name="nome_produto" required>
-                        <option value="" disabled selected>Selecione um produto</option>
-                        <option value="camiseta-branca">Camiseta Branca</option>
-                        <option value="calca-jeans">Calça Jeans</option>
-                        <option value="tenis-esportivo">Tênis Esportivo</option>
-                        <option value="moletom-preto">Moletom Preto</option>
-                        <option value="bermuda-tactel">Bermuda Tactel</option>
-                        <option value="vestido-floral">Vestido Floral</option>
-                        <option value="sapato-social">Sapato Social</option>
-                        <option value="jaqueta-couro">Jaqueta de Couro</option>
-                        <option value="oculos-sol">Óculos de Sol</option>
-                        <option value="relogio-pulso">Relógio de Pulso</option>
-                    </select>
+                    <input type="text" id="nome-produto" name="nome_produto" list="lista-produtos" placeholder="Digite ou selecione o nome do produto" required>
+                    <datalist id="lista-produtos">
+                        <option value="Camiseta Branca">
+                        <option value="Calça Jeans">
+                        <option value="Tênis Esportivo">
+                        <option value="Moletom Preto">
+                        <option value="Bermuda Tactel">
+                        <option value="Vestido Floral">
+                        <option value="Sapato Social">
+                        <option value="Jaqueta de Couro">
+                        <option value="Óculos de Sol">
+                        <option value="Relógio de Pulso">
+                        <option value="Camisa Polo">
+                        <option value="Saia Jeans">
+                        <option value="Boné">
+                        <option value="Bolsa">
+                    </datalist>
                 </div>
                 <br>
                 <div>
@@ -93,6 +93,27 @@
             const estoqueInput = document.getElementById('estoque');
             const alertaEstoque = document.getElementById('alerta-estoque');
 
+            // Verifica se há um ID na URL para edição
+            const urlParams = new URLSearchParams(window.location.search);
+            const produtoIdEditar = urlParams.get('id');
+
+            if (produtoIdEditar) {
+                const produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+                const produto = produtos.find(p => p.id === produtoIdEditar);
+                if (produto) {
+                    const inputNome = document.getElementById('nome-produto');
+                    inputNome.value = produto.nome;
+                    inputNome.disabled = true; // Bloqueia a troca do produto durante a edição
+                    
+                    document.getElementById('estoque').value = produto.quantidade;
+                    document.getElementById('valor-compra').value = produto.valorCompra;
+                    document.getElementById('valor-venda').value = produto.valorVenda;
+
+                    document.querySelector('button[type="submit"]').textContent = 'Salvar Alterações';
+                    document.querySelector('header h1').textContent = 'Editar Produto';
+                }
+            }
+
             // Adiciona um "ouvinte" para o alerta de estoque baixo
             estoqueInput.addEventListener('input', function() {
                 const quantidade = parseInt(this.value, 10);
@@ -105,27 +126,57 @@
                 event.preventDefault(); // Impede o envio padrão do formulário
 
                 // Pega os valores dos campos
-                const nomeProdutoSelect = document.getElementById('nome-produto');
-                const produtoId = nomeProdutoSelect.value;
-                const nomeProduto = nomeProdutoSelect.options[nomeProdutoSelect.selectedIndex].text;
-                const quantidade = document.getElementById('estoque').value;
+                const nomeProdutoInput = document.getElementById('nome-produto');
+                const nomeProduto = nomeProdutoInput.value.trim();
+                // Gera um ID baseado no nome (ex: "Calça Jeans" -> "calca-jeans")
+                const produtoId = nomeProduto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+
+                const quantidade = parseInt(document.getElementById('estoque').value, 10);
                 const valorCompra = parseFloat(document.getElementById('valor-compra').value).toFixed(2);
                 const valorVenda = parseFloat(document.getElementById('valor-venda').value).toFixed(2);
 
-                const produto = {
-                    id: produtoId,
-                    nome: nomeProduto, // O texto visível, ex: "Camiseta Branca"
-                    quantidade: quantidade,
-                    valorCompra: valorCompra,
-                    valorVenda: valorVenda
-                };
-
                 // Pega os produtos já salvos no localStorage ou cria uma lista vazia
                 const produtosSalvos = JSON.parse(localStorage.getItem('produtos')) || [];
-                produtosSalvos.push(produto);
+                
+                // Lógica de Edição (Substituição dos dados)
+                if (produtoIdEditar) {
+                    const index = produtosSalvos.findIndex(p => p.id === produtoIdEditar);
+                    if (index !== -1) {
+                        produtosSalvos[index].quantidade = quantidade; // Substitui a quantidade (correção)
+                        produtosSalvos[index].valorCompra = valorCompra;
+                        produtosSalvos[index].valorVenda = valorVenda;
+                        
+                        localStorage.setItem('produtos', JSON.stringify(produtosSalvos));
+                        alert('Produto atualizado com sucesso!');
+                        window.location.href = 'produtos.html';
+                        return;
+                    }
+                }
+
+                // Verifica se o produto já existe
+                const indexExistente = produtosSalvos.findIndex(p => p.id === produtoId);
+
+                if (indexExistente !== -1) {
+                    // Se existe, soma a quantidade e atualiza os preços
+                    produtosSalvos[indexExistente].quantidade = parseInt(produtosSalvos[indexExistente].quantidade) + quantidade;
+                    produtosSalvos[indexExistente].valorCompra = valorCompra;
+                    produtosSalvos[indexExistente].valorVenda = valorVenda;
+                    alert('Produto já existente! Estoque atualizado com sucesso.');
+                } else {
+                    // Se não existe, cria um novo
+                    const produto = {
+                        id: produtoId,
+                        nome: nomeProduto,
+                        quantidade: quantidade,
+                        valorCompra: valorCompra,
+                        valorVenda: valorVenda
+                    };
+                    produtosSalvos.push(produto);
+                    alert('Produto cadastrado com sucesso!');
+                }
+
                 localStorage.setItem('produtos', JSON.stringify(produtosSalvos));
 
-                alert('Produto cadastrado com sucesso!');
                 productForm.reset(); // Limpa o formulário
             });
         </script>
